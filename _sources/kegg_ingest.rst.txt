@@ -1,0 +1,29 @@
+kegg\_ingest package
+====================
+
+Submodules
+----------
+
+kegg\_ingest.cli module
+-----------------------
+
+.. automodule:: kegg_ingest.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kegg\_ingest.main module
+------------------------
+
+.. automodule:: kegg_ingest.main
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: kegg_ingest
+   :members:
+   :undoc-members:
+   :show-inheritance:
