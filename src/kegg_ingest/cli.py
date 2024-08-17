@@ -4,7 +4,7 @@ import logging
 import click
 
 from kegg_ingest import __version__
-from kegg_ingest.main import demo
+from kegg_ingest.main import LINKS_MAP, empty_db, make_dataframe, parse_response
 
 __all__ = [
     "main",
@@ -12,6 +12,16 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
+db_option = click.option("--db", help="Database to use.", type=click.Choice(LINKS_MAP.keys()), required=True)
+
+COLUMN_MAP = {
+    "pathway": ["pathway_id", "description"],
+    "module": ["module_id", "description"],
+    "ko": ["ko_id", "description"],
+    "ec": ["ec_id", "description"],
+    "rn": ["rn_id", "description"],
+    "cpd": ["cpd_id", "description"],
+}
 
 @click.group()
 @click.option("-v", "--verbose", count=True)
@@ -35,9 +45,20 @@ def main(verbose: int, quiet: bool):
 
 
 @main.command()
-def run():
+@db_option
+def run(db: str):
     """Run the kegg-ingest's demo command."""
-    demo()
+
+    table_name = parse_response(COLUMN_MAP.get(db, ["id", "name"]), "list", db)
+    # all_tables = {db: table_name}
+    # for item in LINKS_MAP.get(db):
+    #     all_tables[item] = parse_response(COLUMN_MAP.get(item, ["id", "name"]), "list", item)
+    make_dataframe(table_name)
+
+@main.command()
+def clear_db():
+    """Clear the database."""
+    empty_db()
 
 
 if __name__ == "__main__":
