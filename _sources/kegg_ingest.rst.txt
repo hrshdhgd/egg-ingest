@@ -20,6 +20,14 @@ kegg\_ingest.main module
    :undoc-members:
    :show-inheritance:
 
+kegg\_ingest.utils module
+-------------------------
+
+.. automodule:: kegg_ingest.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

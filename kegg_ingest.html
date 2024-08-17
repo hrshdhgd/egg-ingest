@@ -59,6 +59,14 @@
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.process_kegg_response"><code class="docutils literal notranslate"><span class="pre">process_kegg_response()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#module-kegg_ingest.utils">kegg_ingest.utils module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.drop_table"><code class="docutils literal notranslate"><span class="pre">drop_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.empty_db"><code class="docutils literal notranslate"><span class="pre">empty_db()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.get_db_connection"><code class="docutils literal notranslate"><span class="pre">get_db_connection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.has_digit"><code class="docutils literal notranslate"><span class="pre">has_digit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.print_database_overview"><code class="docutils literal notranslate"><span class="pre">print_database_overview()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-kegg_ingest">Module contents</a></li>
 </ul>
 </li>
@@ -138,6 +146,37 @@
 <dt class="sig sig-object py" id="kegg_ingest.main.process_kegg_response">
 <span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">process_kegg_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.process_kegg_response" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+</section>
+<section id="module-kegg_ingest.utils">
+<span id="kegg-ingest-utils-module"></span><h2>kegg_ingest.utils module<a class="headerlink" href="#module-kegg_ingest.utils" title="Link to this heading"></a></h2>
+<p>Utility functions for KEGG ingestion.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.drop_table">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">drop_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.drop_table" title="Link to this definition"></a></dt>
+<dd><p>Drop a specific table from the database.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.empty_db">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">empty_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kegg_data.db'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.empty_db" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.get_db_connection">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">get_db_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kegg_data.db'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.get_db_connection" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.has_digit">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">has_digit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.has_digit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.print_database_overview">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">print_database_overview</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.print_database_overview" title="Link to this definition"></a></dt>
+<dd><p>Print a bird’s eye view of the database: schema names, table names, and column names.</p>
+</dd></dl>
 
 </section>
 <section id="module-kegg_ingest">
