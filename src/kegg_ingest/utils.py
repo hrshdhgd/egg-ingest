@@ -1,19 +1,22 @@
 """Utility functions for KEGG ingestion."""
 
-
 import duckdb
-from tabulate import tabulate
 from duckdb import DuckDBPyConnection
+from tabulate import tabulate
+
 
 def get_db_connection(db_path="kegg_data.db"):
+    """Get a connection to the database."""
     return duckdb.connect(database=db_path)
 
 
 def has_digit(string):
+    """Check if a string has a digit."""
     return any(char.isdigit() for char in string)
 
 
 def empty_db(db_path="kegg_data.db"):
+    """Empty the database by dropping all tables."""
     conn = get_db_connection(db_path)
 
     # Get the list of all tables in the database
@@ -32,8 +35,8 @@ def drop_table(table_name):
 
     # Check if the table exists
     table_exists_query = f"""
-    SELECT COUNT(*) 
-    FROM information_schema.tables 
+    SELECT COUNT(*)
+    FROM information_schema.tables
     WHERE table_name = '{table_name}';
     """
     table_exists = conn.execute(table_exists_query).fetchone()[0]
@@ -88,22 +91,25 @@ def print_database_overview():
 
     conn.close()
 
-def log_table_head(table_name:str, limit:int=5):
+
+def log_table_head(table_name: str, limit: int = 5):
+    """Log the first few rows of a table."""
     conn = get_db_connection()
     try:
         query = f"SELECT * FROM {table_name} LIMIT {limit};"
         results = conn.execute(query).fetchall()
         # Fetch column names
         columns = [desc[0] for desc in conn.description]
-        
+
         # Log the results in a tabulated format
         print(f"First {limit} rows from table '{table_name}':")
         print(tabulate(results, headers=columns, tablefmt="grid"))
-        
+
     except Exception as e:
-        print(f"Error: {e}")    
+        print(f"Error: {e}")
     finally:
         conn.close()
+
 
 def add_new_columns_if_needed(conn, table_name, columns):
     """Add new columns to the table if they do not exist."""
@@ -113,21 +119,21 @@ def add_new_columns_if_needed(conn, table_name, columns):
     new_columns = [col for col in columns if col.lower().strip(":") not in existing_columns]
 
     for col in new_columns:
-        col =col.lower().strip(":") # for umbbd:
+        col = col.lower().strip(":")  # for umbbd:
         alter_table_query = f"ALTER TABLE {table_name} ADD COLUMN {col} TEXT DEFAULT NULL"
         conn.execute(alter_table_query)
         print(f"Added new column '{col}' to table '{table_name}'.")
 
-def insert_data_with_flexible_columns(conn:DuckDBPyConnection, table_name:str, response:dict):
+
+def insert_data_with_flexible_columns(conn: DuckDBPyConnection, table_name: str, response: dict):
     """Insert data into the table, adding new columns if necessary."""
     # Check and add new columns if needed
     add_new_columns_if_needed(conn, table_name, response.keys())
-    
+
     # Prepare the insert query
-    keys = ', '.join(response.keys()).lower().replace(":","") # for umbbd:
-    placeholders = ', '.join(['?' for _ in response.keys()])
+    keys = ", ".join(response.keys()).lower().replace(":", "")  # for umbbd:
+    placeholders = ", ".join(["?" for _ in response.keys()])
     insert_query = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
-    
+
     # Insert the row into the table
     conn.execute(insert_query, list(response.values()))
-

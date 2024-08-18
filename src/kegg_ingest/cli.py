@@ -5,7 +5,7 @@ import logging
 import click
 
 from kegg_ingest import __version__
-from kegg_ingest.main import LINKS_MAP, get_table, parse_response, export
+from kegg_ingest.main import LINKS_MAP, export, get_table, parse_response
 from kegg_ingest.utils import drop_table, empty_db, log_table_head, print_database_overview
 
 __all__ = [
@@ -59,6 +59,7 @@ def get(db: str, output: str = None):
     #     all_tables[item] = parse_response(COLUMN_MAP.get(item, ["id", "name"]), "list", item)
 
     get_table_name = get_table(table_name)
+    # pp_table_name = post_process_table(get_table_name)
     export(get_table_name, output)
 
 
@@ -73,6 +74,7 @@ def clear_db():
 def drop(table_name: str):
     """Drop a table from the database."""
     drop_table(table_name)
+
 
 @main.command()
 @click.argument("table_name")

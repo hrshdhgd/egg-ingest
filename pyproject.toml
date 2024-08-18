@@ -47,6 +47,7 @@ lint.extend-ignore = [
     "D211",  # `no-blank-line-before-class`
     "D212",  # `multi-line-summary-first-line`
     "D203",  # `blank-line-before-docstring`
+    "S608",  # Possible SQL injection vector through string-based query construction
     ]
 line-length = 120
 
