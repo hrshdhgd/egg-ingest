@@ -3,6 +3,7 @@
 
 import duckdb
 from tabulate import tabulate
+from duckdb import DuckDBPyConnection
 
 def get_db_connection(db_path="kegg_data.db"):
     return duckdb.connect(database=db_path)
@@ -109,23 +110,24 @@ def add_new_columns_if_needed(conn, table_name, columns):
     existing_columns_query = f"PRAGMA table_info({table_name})"
     existing_columns_info = conn.execute(existing_columns_query).fetchall()
     existing_columns = {col[1].lower() for col in existing_columns_info}
-    new_columns = [col for col in columns if col.lower() not in existing_columns]
+    new_columns = [col for col in columns if col.lower().strip(":") not in existing_columns]
 
     for col in new_columns:
+        col =col.lower().strip(":") # for umbbd:
         alter_table_query = f"ALTER TABLE {table_name} ADD COLUMN {col} TEXT DEFAULT NULL"
         conn.execute(alter_table_query)
         print(f"Added new column '{col}' to table '{table_name}'.")
 
-def insert_data_with_flexible_columns(conn, table_name, parsed_data):
+def insert_data_with_flexible_columns(conn:DuckDBPyConnection, table_name:str, response:dict):
     """Insert data into the table, adding new columns if necessary."""
-    for row in parsed_data['rows']:
-        # Check and add new columns if needed
-        add_new_columns_if_needed(conn, table_name, parsed_data['columns'])
-        
-        # Prepare the insert query
-        keys = ', '.join(parsed_data['columns']).lower()
-        placeholders = ', '.join(['?' for _ in parsed_data['columns']])
-        insert_query = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
-        
-        # Insert the row into the table
-        conn.execute(insert_query, row)
+    # Check and add new columns if needed
+    add_new_columns_if_needed(conn, table_name, response.keys())
+    
+    # Prepare the insert query
+    keys = ', '.join(response.keys()).lower().replace(":","") # for umbbd:
+    placeholders = ', '.join(['?' for _ in response.keys()])
+    insert_query = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
+    
+    # Insert the row into the table
+    conn.execute(insert_query, list(response.values()))
+

@@ -3,12 +3,11 @@
 import csv
 from io import TextIOWrapper
 import logging
-import re
 
 import requests_cache
 import urllib3
 
-from kegg_ingest.utils import get_db_connection, has_digit, insert_data_with_flexible_columns, log_table_head
+from kegg_ingest.utils import get_db_connection, has_digit, insert_data_with_flexible_columns, insert_data_with_flexible_columns
 
 LINKS_MAP = {
     "rn": ["cpd", "ko", "ec", "module", "pathway"],
@@ -168,17 +167,17 @@ def get_table(table_name):
             original_data = conn.execute(query).fetchall()
             # Create new rows with fetched KEGG data
             responses = [response for row in original_data for response in fetch_kegg_data(row[0], http)]
+
             for idx, response in enumerate(responses):
-                parsed_data = parse_data(response)
                 
                 if idx == 0:
                     # Extract columns and create the table
-                    columns = ', '.join([f"{col.lower()} VARCHAR" for col in parsed_data['columns']])
+                    columns = ', '.join([f"{col.lower()} VARCHAR" for col in response.keys()])
                     create_table_query = f"CREATE TABLE {new_table_name} ({columns})"
                     conn.execute(create_table_query)
             
                 # Insert each row into the table
-                insert_data_with_flexible_columns(conn, new_table_name, parsed_data)
+                insert_data_with_flexible_columns(conn, new_table_name, response)
             
             conn.commit()
             
