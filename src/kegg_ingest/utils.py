@@ -116,10 +116,10 @@ def add_new_columns_if_needed(conn, table_name, columns):
     existing_columns_query = f"PRAGMA table_info({table_name})"
     existing_columns_info = conn.execute(existing_columns_query).fetchall()
     existing_columns = {col[1].lower() for col in existing_columns_info}
-    new_columns = [col for col in columns if col.lower().strip(":") not in existing_columns]
+    new_columns = [col for col in columns if col.lower() not in existing_columns if len(col) > 3]
 
     for col in new_columns:
-        col = col.lower().strip(":")  # for umbbd:
+        col = col.lower()
         alter_table_query = f"ALTER TABLE {table_name} ADD COLUMN {col} TEXT DEFAULT NULL"
         conn.execute(alter_table_query)
         print(f"Added new column '{col}' to table '{table_name}'.")
@@ -129,11 +129,13 @@ def insert_data_with_flexible_columns(conn: DuckDBPyConnection, table_name: str,
     """Insert data into the table, adding new columns if necessary."""
     # Check and add new columns if needed
     add_new_columns_if_needed(conn, table_name, response.keys())
-
+    # Avoid random columns like "der", "dsi, "dan", etc.
+    potential_column_names = [col for col in response.keys()] 
+    potential_values = [response[col] for col in potential_column_names]
     # Prepare the insert query
-    keys = ", ".join(response.keys()).lower().replace(":", "")  # for umbbd:
-    placeholders = ", ".join(["?" for _ in response.keys()])
+    keys = ", ".join(potential_column_names).lower()
+    placeholders = ", ".join(["?" for _ in potential_column_names])
     insert_query = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
 
     # Insert the row into the table
-    conn.execute(insert_query, list(response.values()))
+    conn.execute(insert_query, potential_values)

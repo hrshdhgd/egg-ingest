@@ -90,6 +90,7 @@ def process_kegg_response(response):
             and not any(map(list_of_elements[0].__contains__, non_column_chars))
             and len(list_of_elements) > 1
             and len(list_of_elements[0]) > 3
+            and not list_of_elements[0].endswith(":")
         ):
 
             last_key = list_of_elements[0]
@@ -184,6 +185,8 @@ def get_table(table_name):
                     # Extract columns and create the table
                     columns = ", ".join([f"{col.lower()} VARCHAR" for col in response.keys()])
                     create_table_query = f"CREATE TABLE {new_table_name} ({columns})"
+                    print(create_table_query)
+                    import pdb; pdb.set_trace()
                     conn.execute(create_table_query)
 
                 # Insert each row into the table
