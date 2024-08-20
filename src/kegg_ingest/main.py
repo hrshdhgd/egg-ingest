@@ -2,6 +2,7 @@
 
 import csv
 import logging
+import time
 from io import TextIOWrapper
 
 import requests_cache
@@ -25,6 +26,7 @@ LINKS_MAP = {
 KEGG_URL = "http://rest.kegg.jp/"
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+BATCH_SIZE = 10
 
 
 def parse_response(cols, *args):
@@ -78,6 +80,11 @@ def process_kegg_response(response):
     non_column_chars = ["-", " ", ";"]
 
     for line in TextIOWrapper(response):
+        if line.startswith("///"):
+            yield dictionary
+            dictionary = {}
+            last_key = ""
+            continue
         line_elements = line.split("  ")
         list_of_elements = [x.strip() for x in line_elements if x]
 
@@ -114,40 +121,54 @@ def process_kegg_response(response):
         yield dictionary
 
 
-def fetch_kegg_data(item, http):
+def fetch_kegg_data(item, http, retries=5, backoff_factor=0.3):
     """Fetch KEGG data for a given item."""
     new_kegg_url = KEGG_URL + "get/" + item
-    pathway_response = http.request("GET", new_kegg_url, preload_content=False)
-    pathway_response.auto_close = False
-    yield from process_kegg_response(pathway_response)
-
-
-def parse_data(data):
-    """Parse KEGG data into a dictionary."""
-    # Initialize the result dictionary
-    result = {"columns": list(data.keys()), "rows": []}
-    # Get the maximum number of splits for any key
-    max_splits = max(len(value.split(" | ")) for value in data.values())
-    # Create empty rows based on the maximum number of splits
-    rows = [[] for _ in range(max_splits)]
-
-    # Populate the rows with split values
-    for _, val in data.items():
-        split_values = val.split(" | ")
-        last_value = split_values[-1]
-        for i in range(max_splits):
-            if i < len(split_values):
-                rows[i].append(split_values[i])
+    attempt = 0
+    
+    while attempt < retries:
+        try:
+            pathway_response = http.request("GET", new_kegg_url, preload_content=False)
+            
+            if pathway_response.status == 200:
+                pathway_response.auto_close = False
+                yield from process_kegg_response(pathway_response)
+                return
+            
+            elif pathway_response.status in {403, 404}:
+                error_messages = {
+                    403: "Access forbidden: Check if the URL is correct and if you have the necessary permissions.",
+                    404: "Not found: Check if the URL is correct."
+                }
+                print(error_messages[pathway_response.status])
+                if pathway_response.status == 403:
+                    print("Sleeping for 500 seconds before retrying.")
+                    time.sleep(500)
+                return
+            
             else:
-                # Repeat the last value if there are fewer splits
-                rows[i].append(last_value)
+                print(f"An error occurred: {pathway_response.status}")
+                return
+        
+        except (urllib3.exceptions.IncompleteRead, urllib3.exceptions.NewConnectionError) as e:
+            attempt += 1
+            if attempt >= retries:
+                print(f"Failed after {retries} attempts: {e}")
+                raise
+            else:
+                print(f"Attempt {attempt} failed: {e}. Retrying in {backoff_factor * (2 ** attempt)} seconds...")
+                time.sleep(backoff_factor * (2 ** attempt))
+        
+        except urllib3.exceptions.HTTPError as e:
+            print(f"HTTP error occurred: {e}")
+            return
+        
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            return
 
-    # Assign the populated rows to the result dictionary
-    result["rows"] = rows
-    return result
 
-
-def get_table(table_name):
+def get_table(table_name, batch_size:int = BATCH_SIZE):
     """Make a dataframe from a table in the database."""
     http = urllib3.PoolManager()
     conn = get_db_connection()
@@ -176,26 +197,38 @@ def get_table(table_name):
             # Fetch the table data
             query = f"SELECT {id_col_name} FROM {table_name};"
             original_data = conn.execute(query).fetchall()
+            list_of_lists = [
+                "+".join(item[0] for item in original_data[i : i + batch_size])
+                for i in range(0, len(original_data), batch_size)
+            ]
             # Create new rows with fetched KEGG data
-            responses = [response for row in original_data for response in fetch_kegg_data(row[0], http)]
-
-            for idx, response in enumerate(responses):
-
-                if idx == 0:
-                    # Extract columns and create the table
-                    columns = ", ".join([f"{col.lower()} VARCHAR" for col in response.keys()])
-                    create_table_query = f"CREATE TABLE {new_table_name} ({columns})"
-                    print(create_table_query)
-                    import pdb; pdb.set_trace()
-                    conn.execute(create_table_query)
-
-                # Insert each row into the table
-                insert_data_with_flexible_columns(conn, new_table_name, response)
+            table_created = False
+            data_batch = []
+            for batch in list_of_lists:
+                for response in fetch_kegg_data(batch, http):
+                    if not table_created:
+                        # Extract columns and create the table
+                        columns = ", ".join([f"{col.lower()} VARCHAR" for col in response.keys()])
+                        create_table_query = f"CREATE TABLE {new_table_name} ({columns})"
+                        logging.info(f"Query: {create_table_query}")
+                        conn.execute(create_table_query)
+                        table_created = True
+                    
+                    data_batch.append(response)
+                    
+                insert_data_with_flexible_columns(conn, new_table_name, data_batch)
 
             conn.commit()
-
         else:
             logging.info(f"Table '{new_table_name}' already exists.")
+
+        temp_table = f"{new_table_name}_temp"
+        conn.execute(f"""
+        CREATE TABLE {temp_table} AS
+        SELECT DISTINCT * FROM {new_table_name};
+        """)
+        conn.execute(f"DROP TABLE {new_table_name};")
+        conn.execute(f"ALTER TABLE {temp_table} RENAME TO {new_table_name};")
 
         return new_table_name
     finally:
