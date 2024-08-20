@@ -53,7 +53,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.export"><code class="docutils literal notranslate"><span class="pre">export()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.fetch_kegg_data"><code class="docutils literal notranslate"><span class="pre">fetch_kegg_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.get_table"><code class="docutils literal notranslate"><span class="pre">get_table()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.parse_data"><code class="docutils literal notranslate"><span class="pre">parse_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.parse_response"><code class="docutils literal notranslate"><span class="pre">parse_response()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.post_process_table"><code class="docutils literal notranslate"><span class="pre">post_process_table()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.process_kegg_response"><code class="docutils literal notranslate"><span class="pre">process_kegg_response()</span></code></a></li>
@@ -61,6 +60,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#module-kegg_ingest.utils">kegg_ingest.utils module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.add_new_columns_if_needed"><code class="docutils literal notranslate"><span class="pre">add_new_columns_if_needed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.clean_value"><code class="docutils literal notranslate"><span class="pre">clean_value()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.drop_table"><code class="docutils literal notranslate"><span class="pre">drop_table()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.empty_db"><code class="docutils literal notranslate"><span class="pre">empty_db()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.utils.get_db_connection"><code class="docutils literal notranslate"><span class="pre">get_db_connection()</span></code></a></li>
@@ -122,20 +122,14 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.main.fetch_kegg_data">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">fetch_kegg_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">http</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.fetch_kegg_data" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">fetch_kegg_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">http</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backoff_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.fetch_kegg_data" title="Link to this definition"></a></dt>
 <dd><p>Fetch KEGG data for a given item.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.main.get_table">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">get_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.get_table" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">get_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.get_table" title="Link to this definition"></a></dt>
 <dd><p>Make a dataframe from a table in the database.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="kegg_ingest.main.parse_data">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">parse_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.parse_data" title="Link to this definition"></a></dt>
-<dd><p>Parse KEGG data into a dictionary.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -167,6 +161,12 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.utils.clean_value">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">clean_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.clean_value" title="Link to this definition"></a></dt>
+<dd><p>Clean the value by stripping leading/trailing whitespace and replacing multiple spaces/tabs.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.utils.drop_table">
 <span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">drop_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.drop_table" title="Link to this definition"></a></dt>
 <dd><p>Drop a specific table from the database.</p>
@@ -192,7 +192,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.utils.insert_data_with_flexible_columns">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">insert_data_with_flexible_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.insert_data_with_flexible_columns" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.utils.</span></span><span class="sig-name descname"><span class="pre">insert_data_with_flexible_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.utils.insert_data_with_flexible_columns" title="Link to this definition"></a></dt>
 <dd><p>Insert data into the table, adding new columns if necessary.</p>
 </dd></dl>
 
