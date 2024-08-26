@@ -4,6 +4,8 @@ import csv
 import logging
 import time
 from io import TextIOWrapper
+from typing import Union
+from bioservices.kegg import KEGG
 
 import requests_cache
 import urllib3
@@ -73,13 +75,19 @@ def parse_response(cols, *args):
     return table_name
 
 
-def process_kegg_response(response):
+def process_kegg_response(response:Union[str, urllib3.response.HTTPResponse]):
     """Process the KEGG response."""
     dictionary = {}
     last_key = ""
     non_column_chars = ["-", " ", ";"]
-
-    for line in TextIOWrapper(response):
+    if isinstance(response, urllib3.response.HTTPResponse):
+        # Wrap the HTTPResponse in a TextIOWrapper to read line by line
+        response_text = TextIOWrapper(response)
+    else:
+        # Split the string into lines
+        response_text = response.split("\n")
+    
+    for line in response_text:
         if line.startswith("///"):
             yield dictionary
             dictionary = {}
@@ -88,6 +96,8 @@ def process_kegg_response(response):
         line_elements = line.split("  ")
         list_of_elements = [x.strip() for x in line_elements if x]
 
+        if not list_of_elements:
+            continue
         if list_of_elements[0].split(" ")[0].isupper():
             list_of_elements = list_of_elements[0].split(" ") + list_of_elements[1:]
 
@@ -100,7 +110,7 @@ def process_kegg_response(response):
             and not list_of_elements[0].endswith(":")
         ):
 
-            last_key = list_of_elements[0]
+            last_key = list_of_elements[0] if not line.startswith("  ") else last_key
 
             if last_key == "ENZYME":
                 dictionary[last_key] = " | ".join(list_of_elements[1:])
@@ -121,12 +131,12 @@ def process_kegg_response(response):
         yield dictionary
 
 
-def fetch_kegg_data(item, http, retries=5, backoff_factor=0.3):
+def fetch_kegg_data(item, http, use_kegg = True, retries=5, backoff_factor=0.3):
     """Fetch KEGG data for a given item."""
-    new_kegg_url = KEGG_URL + "get/" + item
-    attempt = 0
-    
-    while attempt < retries:
+    if use_kegg:
+        new_kegg_url = KEGG_URL + "get/" + item
+        attempt = 0
+        
         try:
             pathway_response = http.request("GET", new_kegg_url, preload_content=False)
             
@@ -166,9 +176,12 @@ def fetch_kegg_data(item, http, retries=5, backoff_factor=0.3):
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
             return
+    else:
+        k = KEGG(verbose=True)
+        yield from process_kegg_response(k.get(item))
 
 
-def get_table(table_name, batch_size:int = BATCH_SIZE):
+def get_table(table_name, use_kegg:bool = True, batch_size:int = BATCH_SIZE):
     """Make a dataframe from a table in the database."""
     http = urllib3.PoolManager()
     conn = get_db_connection()
@@ -198,14 +211,15 @@ def get_table(table_name, batch_size:int = BATCH_SIZE):
             query = f"SELECT {id_col_name} FROM {table_name};"
             original_data = conn.execute(query).fetchall()
             list_of_lists = [
-                "+".join(item[0] for item in original_data[i : i + batch_size])
-                for i in range(0, len(original_data), batch_size)
-            ]
+                    "+".join(item[0] for item in original_data[i : i + batch_size])
+                    for i in range(0, len(original_data), batch_size)
+                ]
             # Create new rows with fetched KEGG data
             table_created = False
+
             data_batch = []
             for batch in list_of_lists:
-                for response in fetch_kegg_data(batch, http):
+                for response in fetch_kegg_data(batch, http, use_kegg):
                     if not table_created:
                         # Extract columns and create the table
                         columns = ", ".join([f"{col.lower()} VARCHAR" for col in response.keys()])
@@ -276,6 +290,21 @@ def export(table_name: str, output: str = None, format: str = "tsv"):
         writer.writerows(results)
 
     logging.info(f"Table '{table_name}' has been exported to '{output}'.")
+
+
+def run_query(query: str):
+    """Run a query on the database."""
+    conn = get_db_connection()
+    try:
+        results = conn.execute(query).fetchall()
+        if not results:
+            logging.info("No results found.")
+            return
+
+        for row in results:
+            logging.info(row)
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

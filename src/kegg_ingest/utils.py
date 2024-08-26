@@ -1,8 +1,10 @@
 """Utility functions for KEGG ingestion."""
 
+
 from pprint import pprint
 from typing import List, Dict
 import duckdb
+
 
 
 def get_db_connection(db_path="kegg_data.db"):
@@ -153,6 +155,7 @@ def insert_data_with_flexible_columns(conn: duckdb.DuckDBPyConnection, table_nam
         potential_values = [clean_value(response.get(col, None)) for col in all_columns]
         conn.execute(insert_query, potential_values)
 
+    
 
 
 # def parse_data(data):

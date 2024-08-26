@@ -13,6 +13,7 @@ importlib-metadata = ">=8.2.0"
 requests-cache = "^1.2.1"
 duckdb = "^1.0.0"
 pandas = "^2.2.2"
+bioservices = "^1.11.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = {version = ">=8.3.2"}
