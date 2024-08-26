@@ -1,10 +1,9 @@
 """Utility functions for KEGG ingestion."""
 
-
 from pprint import pprint
-from typing import List, Dict
-import duckdb
+from typing import Dict, List
 
+import duckdb
 
 
 def get_db_connection(db_path="kegg_data.db"):
@@ -101,7 +100,7 @@ def log_table_head(table_name: str, limit: int = 5):
         query = f"SELECT * FROM {table_name} LIMIT {limit};"
         results = conn.execute(query).fetchdf()
         # Fetch column names
-        columns = [desc[0] for desc in conn.description]
+        # columns = [desc[0] for desc in conn.description]
 
         # Log the results
         pprint(f"First {limit} rows from table '{table_name}':")
@@ -126,36 +125,36 @@ def add_new_columns_if_needed(conn, table_name, columns):
         conn.execute(alter_table_query)
         pprint(f"Added new column '{col}' to table '{table_name}'.")
 
+
 def clean_value(value):
     """Clean the value by stripping leading/trailing whitespace and replacing multiple spaces/tabs."""
     if isinstance(value, str):
-        return ' '.join(value.split())
+        return " ".join(value.split())
     return value
+
 
 def insert_data_with_flexible_columns(conn: duckdb.DuckDBPyConnection, table_name: str, data_batch: List[Dict]):
     """Insert data into the table, adding new columns if necessary."""
     if not data_batch:
         return  # No data to insert
-    
+
     # Collect all unique column names from the batch
     all_columns = set()
     for response in data_batch:
         all_columns.update(response.keys())
-    
+
     # Check and add new columns if needed
     add_new_columns_if_needed(conn, table_name, list(all_columns))
-    
+
     # Prepare the insert query
     keys = ", ".join(all_columns).lower()
     placeholders = ", ".join(["?" for _ in all_columns])
     insert_query = f"INSERT INTO {table_name} ({keys}) VALUES ({placeholders})"
-    
+
     # Insert each row into the table
     for response in data_batch:
         potential_values = [clean_value(response.get(col, None)) for col in all_columns]
         conn.execute(insert_query, potential_values)
-
-    
 
 
 # def parse_data(data):

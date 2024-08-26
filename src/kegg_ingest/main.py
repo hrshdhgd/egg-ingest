@@ -5,10 +5,10 @@ import logging
 import time
 from io import TextIOWrapper
 from typing import Union
-from bioservices.kegg import KEGG
 
 import requests_cache
 import urllib3
+from bioservices.kegg import KEGG
 
 from kegg_ingest.utils import (
     get_db_connection,
@@ -75,7 +75,7 @@ def parse_response(cols, *args):
     return table_name
 
 
-def process_kegg_response(response:Union[str, urllib3.response.HTTPResponse]):
+def process_kegg_response(response: Union[str, urllib3.response.HTTPResponse]):
     """Process the KEGG response."""
     dictionary = {}
     last_key = ""
@@ -86,7 +86,7 @@ def process_kegg_response(response:Union[str, urllib3.response.HTTPResponse]):
     else:
         # Split the string into lines
         response_text = response.split("\n")
-    
+
     for line in response_text:
         if line.startswith("///"):
             yield dictionary
@@ -131,35 +131,35 @@ def process_kegg_response(response:Union[str, urllib3.response.HTTPResponse]):
         yield dictionary
 
 
-def fetch_kegg_data(item, http, use_kegg = True, retries=5, backoff_factor=0.3):
+def fetch_kegg_data(item, http, use_kegg=True, retries=5, backoff_factor=0.3):
     """Fetch KEGG data for a given item."""
     if use_kegg:
         new_kegg_url = KEGG_URL + "get/" + item
         attempt = 0
-        
+
         try:
             pathway_response = http.request("GET", new_kegg_url, preload_content=False)
-            
+
             if pathway_response.status == 200:
                 pathway_response.auto_close = False
                 yield from process_kegg_response(pathway_response)
                 return
-            
+
             elif pathway_response.status in {403, 404}:
                 error_messages = {
                     403: "Access forbidden: Check if the URL is correct and if you have the necessary permissions.",
-                    404: "Not found: Check if the URL is correct."
+                    404: "Not found: Check if the URL is correct.",
                 }
                 print(error_messages[pathway_response.status])
                 if pathway_response.status == 403:
                     print("Sleeping for 500 seconds before retrying.")
                     time.sleep(500)
                 return
-            
+
             else:
                 print(f"An error occurred: {pathway_response.status}")
                 return
-        
+
         except (urllib3.exceptions.IncompleteRead, urllib3.exceptions.NewConnectionError) as e:
             attempt += 1
             if attempt >= retries:
@@ -167,12 +167,12 @@ def fetch_kegg_data(item, http, use_kegg = True, retries=5, backoff_factor=0.3):
                 raise
             else:
                 print(f"Attempt {attempt} failed: {e}. Retrying in {backoff_factor * (2 ** attempt)} seconds...")
-                time.sleep(backoff_factor * (2 ** attempt))
-        
+                time.sleep(backoff_factor * (2**attempt))
+
         except urllib3.exceptions.HTTPError as e:
             print(f"HTTP error occurred: {e}")
             return
-        
+
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
             return
@@ -181,7 +181,7 @@ def fetch_kegg_data(item, http, use_kegg = True, retries=5, backoff_factor=0.3):
         yield from process_kegg_response(k.get(item))
 
 
-def get_table(table_name, use_kegg:bool = True, batch_size:int = BATCH_SIZE):
+def get_table(table_name, use_kegg: bool = True, batch_size: int = BATCH_SIZE):
     """Make a dataframe from a table in the database."""
     http = urllib3.PoolManager()
     conn = get_db_connection()
@@ -211,9 +211,9 @@ def get_table(table_name, use_kegg:bool = True, batch_size:int = BATCH_SIZE):
             query = f"SELECT {id_col_name} FROM {table_name};"
             original_data = conn.execute(query).fetchall()
             list_of_lists = [
-                    "+".join(item[0] for item in original_data[i : i + batch_size])
-                    for i in range(0, len(original_data), batch_size)
-                ]
+                "+".join(item[0] for item in original_data[i : i + batch_size])
+                for i in range(0, len(original_data), batch_size)
+            ]
             # Create new rows with fetched KEGG data
             table_created = False
 
@@ -227,9 +227,9 @@ def get_table(table_name, use_kegg:bool = True, batch_size:int = BATCH_SIZE):
                         logging.info(f"Query: {create_table_query}")
                         conn.execute(create_table_query)
                         table_created = True
-                    
+
                     data_batch.append(response)
-                    
+
                 insert_data_with_flexible_columns(conn, new_table_name, data_batch)
 
             conn.commit()
@@ -237,10 +237,12 @@ def get_table(table_name, use_kegg:bool = True, batch_size:int = BATCH_SIZE):
             logging.info(f"Table '{new_table_name}' already exists.")
 
         temp_table = f"{new_table_name}_temp"
-        conn.execute(f"""
+        conn.execute(
+            f"""
         CREATE TABLE {temp_table} AS
         SELECT DISTINCT * FROM {new_table_name};
-        """)
+        """
+        )
         conn.execute(f"DROP TABLE {new_table_name};")
         conn.execute(f"ALTER TABLE {temp_table} RENAME TO {new_table_name};")
 
