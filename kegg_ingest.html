@@ -56,6 +56,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.parse_response"><code class="docutils literal notranslate"><span class="pre">parse_response()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.post_process_table"><code class="docutils literal notranslate"><span class="pre">post_process_table()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.process_kegg_response"><code class="docutils literal notranslate"><span class="pre">process_kegg_response()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kegg_ingest.main.run_query"><code class="docutils literal notranslate"><span class="pre">run_query()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#module-kegg_ingest.utils">kegg_ingest.utils module</a><ul>
@@ -122,13 +123,13 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.main.fetch_kegg_data">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">fetch_kegg_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">http</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backoff_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.fetch_kegg_data" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">fetch_kegg_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">http</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_kegg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backoff_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.fetch_kegg_data" title="Link to this definition"></a></dt>
 <dd><p>Fetch KEGG data for a given item.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="kegg_ingest.main.get_table">
-<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">get_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.get_table" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">get_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_kegg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.get_table" title="Link to this definition"></a></dt>
 <dd><p>Make a dataframe from a table in the database.</p>
 </dd></dl>
 
@@ -148,6 +149,12 @@
 <dt class="sig sig-object py" id="kegg_ingest.main.process_kegg_response">
 <span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">process_kegg_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.process_kegg_response" title="Link to this definition"></a></dt>
 <dd><p>Process the KEGG response.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="kegg_ingest.main.run_query">
+<span class="sig-prename descclassname"><span class="pre">kegg_ingest.main.</span></span><span class="sig-name descname"><span class="pre">run_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#kegg_ingest.main.run_query" title="Link to this definition"></a></dt>
+<dd><p>Run a query on the database.</p>
 </dd></dl>
 
 </section>
