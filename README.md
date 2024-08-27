@@ -14,7 +14,7 @@ pip install kegg-ingest
 
 ### `get`
 
-Fetch and process data from KEGG.
+Fetch and process data from KEGG. (e.g.: https://rest.kegg.jp/get/map011000)
 
 **Usage:**
 
@@ -34,6 +34,7 @@ kegg-ingest get --db <database> [--batch-size <size>] [--use-kegg/--no-use-kegg]
 ```sh
 kegg-ingest get --db pathway --batch-size 5 --use-kegg --output output.tsv
 ```
+This downloads all KEGG pathways in batches of 5 (e.g.: https://rest.kegg.jp/get/map01100+map01110+map01120+map01200+map01210 so on and so forth.)
 
 ### `clear-db`
 
