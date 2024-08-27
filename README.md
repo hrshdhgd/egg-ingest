@@ -1,6 +1,6 @@
 # kegg-ingest CLI
 
-`kegg-ingest` is a command line interface for interacting with the KEGG database. This tool allows you to fetch, process, and manage data from KEGG.
+`kegg-ingest` is a command line interface for interacting with the KEGG database. This tool allows you to fetch, process, and manage data from KEGG. All ingets are saved in a `duckdb` database and also exported as a tsv file.
 
 ## Installation
 
