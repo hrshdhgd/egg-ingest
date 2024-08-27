@@ -24,7 +24,7 @@ kegg-ingest get --db <database> [--batch-size <size>] [--use-kegg/--no-use-kegg]
 
 **Options:**
 
-- `--db`: Database to use (required).
+- `--db`: KEGG Database to ingest (required).
 - `--batch-size, -b`: Batch size for processing (default: 10, max: 10).
 - `--use-kegg/--no-use-kegg`: Use KEGG API to fetch data (default: True). Alternatively uses [`bioservices`](https://github.com/cokelaer/bioservices)
 - `--output, -o`: Output file to write to (tsv format).
@@ -62,7 +62,7 @@ kegg-ingest drop <table_name>
 **Example:**
 
 ```sh
-kegg-ingest drop pathway_table
+kegg-ingest drop get_pathway
 ```
 
 ### `preview`
@@ -86,7 +86,7 @@ kegg-ingest preview <table_name> [--limit <number>]
 **Example:**
 
 ```sh
-kegg-ingest preview pathway_table --limit 10
+kegg-ingest preview get_pathway --limit 10
 ```
 
 ### `overview`
@@ -116,7 +116,7 @@ kegg-ingest query <query_text>
 **Example:**
 
 ```sh
-kegg-ingest query "SELECT * FROM pathway_table WHERE description LIKE '%metabolism%'"
+kegg-ingest query "SELECT * FROM get_pathway WHERE description LIKE '%metabolism%'"
 ```
 
 ## License
